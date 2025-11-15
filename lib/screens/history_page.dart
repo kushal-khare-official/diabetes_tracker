@@ -1,13 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:diabetes_tracker/database/reading_repository.dart';
 import 'package:diabetes_tracker/database/insulin_dose_repository.dart';
 import 'package:diabetes_tracker/models/reading.dart';
 import 'package:diabetes_tracker/models/insulin_dose.dart';
-import 'package:diabetes_tracker/models/history_entry.dart';
-import 'package:diabetes_tracker/services/export_service.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -35,9 +30,7 @@ class _CombinedEntry {
 class _HistoryPageState extends State<HistoryPage> {
   final ReadingRepository _readingRepository = ReadingRepository();
   final InsulinDoseRepository _insulinDoseRepository = InsulinDoseRepository();
-  final ExportService _exportService = ExportService();
 
-  List<HistoryEntry> _history = [];
   Map<String, List<_CombinedEntry>> _groupedHistory = {};
   List<String> _sortedDateKeys = [];
 
@@ -102,7 +95,6 @@ class _HistoryPageState extends State<HistoryPage> {
     final sortedKeys = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
     
     setState(() {
-      _history = [...readings, ...insulinDoses];
       _groupedHistory = grouped;
       _sortedDateKeys = sortedKeys;
     });
@@ -144,16 +136,6 @@ class _HistoryPageState extends State<HistoryPage> {
     final period = hour >= 12 ? 'PM' : 'AM';
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
     return '$displayHour:$minute $period';
-  }
-
-  Future<void> _exportHistory() async {
-    final csvData = await _exportService.generateCsv(_history);
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/diabetes_history.csv');
-    await file.writeAsString(csvData);
-    SharePlus.instance.share(
-      ShareParams(files: [XFile(file.path)], text: 'Diabetes History'),
-    );
   }
 
   @override
@@ -222,10 +204,6 @@ class _HistoryPageState extends State<HistoryPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _exportHistory,
-        child: const Icon(Icons.share),
-      ),
     );
   }
 
