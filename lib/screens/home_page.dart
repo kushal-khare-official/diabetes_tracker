@@ -1,6 +1,7 @@
 import 'package:diabetes_tracker/screens/add_reading_page.dart';
 import 'package:diabetes_tracker/screens/history_page.dart';
 import 'package:diabetes_tracker/screens/settings_page.dart';
+import 'package:diabetes_tracker/screens/export_pdf_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -74,17 +75,17 @@ class HomePage extends StatelessWidget {
                     ),
                     _buildActionCard(
                       context: context,
-                      title: 'Calculator',
-                      icon: FontAwesomeIcons.calculator,
+                      title: 'Export as PDF',
+                      icon: FontAwesomeIcons.filePdf,
                       isFontAwesome: true,
                       color: colorScheme.tertiaryContainer,
                       iconColor: const Color(0xFFFF9800), // Bright Orange
                       textColor: colorScheme.onTertiaryContainer,
                       onTap: () {
-                        // TODO: Navigate to insulin calculator page
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Insulin Calculator coming soon!'),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ExportPdfPage(),
                           ),
                         );
                       },

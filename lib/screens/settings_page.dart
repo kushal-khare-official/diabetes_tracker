@@ -12,7 +12,9 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final _formKey = GlobalKey<FormState>();
   final UserSettingsService _userSettingsService = UserSettingsService();
-  late TextEditingController _baseFiaspUnitsController;
+  late TextEditingController _fiaspBreakfastBaseController;
+  late TextEditingController _fiaspLunchBaseController;
+  late TextEditingController _fiaspDinnerBaseController;
   late TextEditingController _defaultPreviousLantusController;
 
   UserSettings? _currentUserSettings;
@@ -25,8 +27,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadUserSettings() async {
     _currentUserSettings = await _userSettingsService.loadUserSettings();
-    _baseFiaspUnitsController = TextEditingController(
-      text: _currentUserSettings?.baseFiaspUnits.toString() ?? '',
+    _fiaspBreakfastBaseController = TextEditingController(
+      text: _currentUserSettings?.fiaspBreakfastBase.toString() ?? '',
+    );
+    _fiaspLunchBaseController = TextEditingController(
+      text: _currentUserSettings?.fiaspLunchBase.toString() ?? '',
+    );
+    _fiaspDinnerBaseController = TextEditingController(
+      text: _currentUserSettings?.fiaspDinnerBase.toString() ?? '',
     );
     _defaultPreviousLantusController = TextEditingController(
       text: _currentUserSettings?.defaultPreviousLantus.toString() ?? '',
@@ -37,7 +45,9 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _saveUserSettings() async {
     if (_formKey.currentState!.validate()) {
       final newSettings = UserSettings(
-        baseFiaspUnits: int.parse(_baseFiaspUnitsController.text),
+        fiaspBreakfastBase: int.parse(_fiaspBreakfastBaseController.text),
+        fiaspLunchBase: int.parse(_fiaspLunchBaseController.text),
+        fiaspDinnerBase: int.parse(_fiaspDinnerBaseController.text),
         defaultPreviousLantus: int.parse(_defaultPreviousLantusController.text),
       );
       await _userSettingsService.saveUserSettings(newSettings);
@@ -50,7 +60,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   void dispose() {
-    _baseFiaspUnitsController.dispose();
+    _fiaspBreakfastBaseController.dispose();
+    _fiaspLunchBaseController.dispose();
+    _fiaspDinnerBaseController.dispose();
     _defaultPreviousLantusController.dispose();
     super.dispose();
   }
@@ -68,16 +80,23 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Fiasp Base Units',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     TextFormField(
-                      controller: _baseFiaspUnitsController,
+                      controller: _fiaspBreakfastBaseController,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: 'Base Fiasp Units',
-                        hintText: 'Enter base Fiasp units (e.g., 5)',
+                        labelText: 'Breakfast Base Units',
+                        hintText: 'Enter breakfast base Fiasp units (e.g., 8)',
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter base Fiasp units';
+                          return 'Please enter breakfast base Fiasp units';
                         }
                         if (int.tryParse(value) == null) {
                           return 'Please enter a valid number';
@@ -85,7 +104,50 @@ class _SettingsPageState extends State<SettingsPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _fiaspLunchBaseController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Lunch Base Units',
+                        hintText: 'Enter lunch base Fiasp units (e.g., 8)',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter lunch base Fiasp units';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _fiaspDinnerBaseController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Dinner Base Units',
+                        hintText: 'Enter dinner base Fiasp units (e.g., 8)',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter dinner base Fiasp units';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Lantus Settings',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     TextFormField(
                       controller: _defaultPreviousLantusController,
                       keyboardType: TextInputType.number,
@@ -104,10 +166,16 @@ class _SettingsPageState extends State<SettingsPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _saveUserSettings,
-                      child: const Text('Save Settings'),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _saveUserSettings,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text('Save Settings'),
+                      ),
                     ),
                   ],
                 ),

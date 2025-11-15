@@ -21,6 +21,15 @@ class ReadingRepository {
     });
   }
 
+  Future<int> deleteReading(int id) async {
+    final db = await dbHelper.database;
+    return await db.delete(
+      'readings',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<int> deleteAllReadings() async {
     final db = await dbHelper.database;
     return await db.delete('readings');

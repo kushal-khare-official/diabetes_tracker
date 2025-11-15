@@ -26,6 +26,10 @@ class _CombinedEntry {
     this.insulinDose,
     required this.timestamp,
   });
+
+  bool get hasReading => reading != null;
+  bool get hasInsulin => insulinDose != null;
+  bool get canDelete => (reading?.id != null) || (insulinDose?.id != null);
 }
 
 class _HistoryPageState extends State<HistoryPage> {
@@ -225,9 +229,59 @@ class _HistoryPageState extends State<HistoryPage> {
     );
   }
 
+  Future<void> _deleteEntry(_CombinedEntry entry) async {
+    final List<String> itemsToDelete = [];
+    if (entry.reading != null) {
+      itemsToDelete.add('blood sugar reading (${entry.reading!.sugarLevel} mg/dL)');
+    }
+    if (entry.insulinDose != null) {
+      itemsToDelete.add('${entry.insulinDose!.type.name} insulin dose (${entry.insulinDose!.units} units)');
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Entry'),
+        content: Text(
+          'Are you sure you want to delete ${itemsToDelete.join(' and ')}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      // Delete both reading and insulin dose if they exist
+      if (entry.reading?.id != null) {
+        await _readingRepository.deleteReading(entry.reading!.id!);
+      }
+      if (entry.insulinDose?.id != null) {
+        await _insulinDoseRepository.deleteInsulinDose(entry.insulinDose!.id!);
+      }
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Entry deleted')),
+        );
+        _loadHistory();
+      }
+    }
+  }
+
   Widget _buildCombinedCard(_CombinedEntry entry, ThemeData theme, ColorScheme colorScheme) {
-    final hasReading = entry.reading != null;
-    final hasInsulin = entry.insulinDose != null;
+    final hasReading = entry.hasReading;
+    final hasInsulin = entry.hasInsulin;
     
     // Use the earlier timestamp if both exist, otherwise use the available one
     final displayTime = hasReading && hasInsulin
@@ -244,7 +298,7 @@ class _HistoryPageState extends State<HistoryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with time
+            // Header with time and delete button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -255,24 +309,37 @@ class _HistoryPageState extends State<HistoryPage> {
                     color: colorScheme.primary,
                   ),
                 ),
-                if (hasReading)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      entry.reading!.type.name.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
-                        fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    if (hasReading)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          entry.reading!.type.name.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
+                    const SizedBox(width: 8),
+                    // Single delete button
+                    if (entry.canDelete)
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 20),
+                        color: colorScheme.error,
+                        onPressed: () => _deleteEntry(entry),
+                        tooltip: 'Delete entry',
+                      ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 12),

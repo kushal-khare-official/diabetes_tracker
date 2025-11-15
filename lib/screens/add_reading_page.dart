@@ -89,7 +89,9 @@ class _AddReadingPageState extends State<AddReadingPage> {
         await _insulinDoseRepository.addInsulinDose(lantusDose);
         await _userSettingsService.saveUserSettings(
           UserSettings(
-            baseFiaspUnits: _currentUserSettings!.baseFiaspUnits,
+            fiaspBreakfastBase: _currentUserSettings!.fiaspBreakfastBase,
+            fiaspLunchBase: _currentUserSettings!.fiaspLunchBase,
+            fiaspDinnerBase: _currentUserSettings!.fiaspDinnerBase,
             defaultPreviousLantus: _lantusDoseSuggestion!,
           ),
         );

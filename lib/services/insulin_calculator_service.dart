@@ -22,7 +22,23 @@ class InsulinCalculatorService {
     required ReadingType mealType,
     required UserSettings userSettings,
   }) {
-    int baseValue = userSettings.baseFiaspUnits;
+    // Get the appropriate base value based on meal type
+    int baseValue;
+    switch (mealType) {
+      case ReadingType.breakfast:
+        baseValue = userSettings.fiaspBreakfastBase;
+        break;
+      case ReadingType.lunch:
+        baseValue = userSettings.fiaspLunchBase;
+        break;
+      case ReadingType.dinner:
+        baseValue = userSettings.fiaspDinnerBase;
+        break;
+      case ReadingType.fasting:
+        // For fasting, use breakfast base as default
+        baseValue = userSettings.fiaspBreakfastBase;
+        break;
+    }
 
     if (currentSugarLevel < 80) {
       return baseValue - 2;

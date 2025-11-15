@@ -21,6 +21,15 @@ class InsulinDoseRepository {
     });
   }
 
+  Future<int> deleteInsulinDose(int id) async {
+    final db = await dbHelper.database;
+    return await db.delete(
+      'insulin_doses',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
   Future<int> deleteAllInsulinDoses() async {
     final db = await dbHelper.database;
     return await db.delete('insulin_doses');
